@@ -1,0 +1,368 @@
+﻿@model IEnumerable<APPLICATION_WEB.Models.User>
+
+@{
+    ViewBag.Title = "Users";
+}
+
+<h2>Users</h2>
+
+<button id="addButton" class="btn btn-primary">Add User</button>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.Email</td>
+                <td>@item.Phone</td>
+                <td>
+                    <button class="btn btn-primary btn-edit" data-id="@item.Id" data-name="@item.Name" data-email="@item.Email" data-phone="@item.Phone" data-address="@item.Address" data-state="@item.State" data-city="@item.City">Edit</button>
+                    <button class="btn btn-danger btn-delete" data-id="@item.Id">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="addUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addUserModalLabel">Add User</h5>
+                <button type="button" id="closeAddModal" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addUserForm">
+                    <div class="form-group">
+                        <label for="Name">Name</label>
+                        <input type="text" class="form-control" id="Name" name="Name" />
+                    </div>
+                    <div class="form-group">
+                        <label for="Email">Email</label>
+                        <input type="text" class="form-control" id="Email" name="Email" />
+                    </div>
+                    <div class="form-group">
+                        <label for="Phone">Phone</label>
+                        <input type="number" class="form-control" id="Phone" name="Phone" />
+                    </div>
+                    <div class="form-group">
+                        <label for="Address">Address</label>
+                        <input type="text" class="form-control" id="Address" name="Address" />
+                    </div>
+                    <div class="form-group">
+                        <label for="State">State</label>
+                        <select class="form-control" id="State" name="State">
+                            <option value="">Select State</option>
+                            <option value="Gujarat">Gujarat</option>
+                            <option value="Maharashtra">Maharashtra</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="City">City</label>
+                        <select class="form-control" id="City" name="City">
+                            <option value="">Select City</option>
+                            <!-- Cities will be populated based on state -->
+                        </select>
+                    </div>
+                    <div class="form-group form-check">
+                        <input type="checkbox" class="form-check-input" id="Agree" name="Agree" />
+                        <label class="form-check-label" for="Agree">Agree</label>
+                    </div>
+                    <button type="submit" id="submitBtn" class="btn btn-primary" disabled>Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1" role="dialog" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                <button type="button" id="closeEditModal" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <input type="hidden" id="EditId" name="Id" />
+                    <div class="form-group">
+                        <label for="EditName">Name</label>
+                        <input type="text" class="form-control" id="EditName" name="Name" />
+                    </div>
+                    <div class="form-group">
+                        <label for="EditEmail">Email</label>
+                        <input type="email" class="form-control" id="EditEmail" name="Email" />
+                    </div>
+                    <div class="form-group">
+                        <label for="EditPhone">Phone</label>
+                        <input type="text" class="form-control" id="EditPhone" name="Phone" />
+                    </div>
+                    <div class="form-group">
+                        <label for="EditAddress">Address</label>
+                        <input type="text" class="form-control" id="EditAddress" name="Address" />
+                    </div>
+                    <div class="form-group">
+                        <label for="EditState">State</label>
+                        <select class="form-control" id="EditState" name="State">
+                            <option value="">Select State</option>
+                            <option value="Gujarat">Gujarat</option>
+                            <option value="Maharashtra">Maharashtra</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="EditCity">City</label>
+                        <select class="form-control" id="EditCity" name="City">
+                            <option value="">Select City</option>
+                            <!-- Cities will be populated based on state -->
+                        </select>
+                    </div>
+                    <div class="form-group form-check">
+                        <input type="checkbox" class="form-check-input" id="EditAgree" name="Agree" />
+                        <label class="form-check-label" for="EditAgree">Agree</label>
+                    </div>
+                    <button type="submit" id="updateBtn" class="btn btn-primary" disabled>Update</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var cityOptions = {
+                "Gujarat": ["Surat", "Bardoli", "Baroda"],
+                "Maharashtra": ["Mumbai", "Pune"]
+            };
+
+            function updateCityOptions(stateDropdown, cityDropdown) {
+                var state = stateDropdown.val();
+                var cities = cityOptions[state];
+                cityDropdown.empty();
+                $.each(cities, function (index, city) {
+                    cityDropdown.append(new Option(city, city));
+                });
+            }
+
+            // Show & Hide Popup
+            $('#addButton').click(function () {
+                $('#addUserModal').modal('show');
+            });
+            $('#closeAddModal').click(function () {
+                $('#addUserModal').modal('hide');
+            });
+
+            // Update cities on state change in Add User form
+            $('#State').change(function () {
+                updateCityOptions($(this), $('#City'));
+            });
+
+            // Create User
+            $('#addUserForm').submit(function (event) {
+                event.preventDefault();
+
+                // Perform validation
+                var isValid = true;
+                var errorMessage = '';
+
+                // Required fields
+                if (!$('#Name').val().trim()) {
+                    isValid = false;
+                    errorMessage += 'Name is required.\n';
+                }
+                if (!$('#Email').val().trim()) {
+                    isValid = false;
+                    errorMessage += 'Email is required.\n';
+                }
+                if (!$('#Phone').val().trim()) {
+                    isValid = false;
+                    errorMessage += 'Phone is required.\n';
+                }
+                if (!$('#State').val().trim()) {
+                    isValid = false;
+                    errorMessage += 'State is required.\n';
+                }
+                if (!$('#City').val().trim()) {
+                    isValid = false;
+                    errorMessage += 'City is required.\n';
+                }
+
+                if (!isValid) {
+                    return alert(errorMessage);
+                }
+                // Email validation
+                var emailPattern = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+                if (!emailPattern.test($('#Email').val())) {
+                    isValid = false;
+                    errorMessage += 'Invalid email format.\n';
+                }
+
+                // Phone validation
+                var phonePattern = /^\d{10}$/;
+                if (!phonePattern.test($('#Phone').val())) {
+                    isValid = false;
+                    errorMessage += 'Phone must be 10 digits.\n';
+                }
+
+                if (isValid) {
+                    $.ajax({
+                        url: '@Url.Action("AddUser")',
+                        type: 'POST',
+                        data: $(this).serialize(),
+                        success: function (response) {
+                            if (response.success) {
+                                alert('User Added.');
+                                location.reload();
+                            } else {
+                                alert('Failed to add user.');
+                            }
+                        }
+                    });
+                } else {
+                    alert(errorMessage);
+                }
+            });
+
+            // Enable/Disable User
+            $('#Agree').change(function () {
+                $('#submitBtn').prop('disabled', !this.checked);
+            });
+            $('#EditAgree').change(function () {
+                $('#updateBtn').prop('disabled', !this.checked);
+            });
+
+            // Delete user
+            $('.btn-delete').click(function () {
+                var userId = $(this).data('id');
+                if (confirm('Are you sure you want to delete this user?')) {
+                    $.ajax({
+                        url: '@Url.Action("DeleteUser")/' + userId,
+                        type: 'DELETE',
+                        success: function (response) {
+                            if (response.success) {
+                                alert('User Deleted');
+                                location.reload();
+                            } else {
+                                alert('Failed to delete user.');
+                            }
+                        }
+                    });
+                }
+            });
+
+            // Edit button click handler
+            $('.btn-edit').click(function () {
+                var id = $(this).data('id');
+                var name = $(this).data('name');
+                var email = $(this).data('email');
+                var phone = $(this).data('phone');
+                var address = $(this).data('address');
+                var state = $(this).data('state');
+                var city = $(this).data('city');
+
+                // Populate edit form fields
+                $('#EditId').val(id);
+                $('#EditName').val(name);
+                $('#EditEmail').val(email);
+                $('#EditPhone').val(phone);
+                $('#EditAddress').val(address);
+                $('#EditState').val(state);
+                updateCityOptions($('#EditState'), $('#EditCity'));
+                $('#EditCity').val(city);
+
+                $('#editUserModal').modal('show');
+            });
+
+            // Hide Edit User Modal
+            $('#closeEditModal').click(function () {
+                $('#editUserModal').modal('hide');
+            });
+
+            // Update cities on state change in Edit User form
+            $('#EditState').change(function () {
+                updateCityOptions($(this), $('#EditCity'));
+            });
+
+            // Edit User form submission
+            $('#editUserForm').submit(function (event) {
+                event.preventDefault();
+                // Perform validation
+                var isValid = true;
+                var errorMessage = '';
+
+                // Required fields
+                if (!$('#EditName').val().trim()) {
+                    isValid = false;
+                    errorMessage += 'Name is required.\n';
+                }
+                if (!$('#EditEmail').val().trim()) {
+                    isValid = false;
+                    errorMessage += 'Email is required.\n';
+                }
+                if (!$('#EditPhone').val().trim()) {
+                    isValid = false;
+                    errorMessage += 'Phone is required.\n';
+                }
+                if (!$('#EditState').val().trim()) {
+                    isValid = false;
+                    errorMessage += 'State is required.\n';
+                }
+                if (!$('#EditCity').val().trim()) {
+                    isValid = false;
+                    errorMessage += 'City is required.\n';
+                }
+
+                if (!isValid) {
+                    return alert(errorMessage);
+                }
+                // Email validation
+                var emailPattern = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+                if (!emailPattern.test($('#EditEmail').val())) {
+                    isValid = false;
+                    errorMessage += 'Invalid email format.\n';
+                }
+
+                // Phone validation
+                var phonePattern = /^\d{10}$/;
+                if (!phonePattern.test($('#EditPhone').val())) {
+                    isValid = false;
+                    errorMessage += 'Phone must be 10 digits.\n';
+                }
+
+                if (isValid) {
+                    $.ajax({
+                        url: '@Url.Action("EditUser")',
+                        type: 'POST',
+                        data: $(this).serialize(),
+                        success: function (response) {
+                            if (response.success) {
+                                alert('User Updated.');
+                                location.reload();
+                            } else {
+                                alert('Failed to update user.');
+                            }
+                        }
+                    });
+                } else {
+                    alert(errorMessage);
+                }
+            });
+
+        });
+    </script>
+}
